@@ -1,4 +1,4 @@
-from mnetemplate import foo
+from mnestudy import foo
 
 
 def test_foo():

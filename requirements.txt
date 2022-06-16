@@ -1,3 +1,8 @@
 numpy
 scipy
 mne
+mne-icalabel
+mne-bids
+pyprep
+
+pymatreader

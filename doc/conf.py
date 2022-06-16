@@ -82,7 +82,7 @@ copyright = u'2016, Vighnesh Birodkar'
 # built documents.
 #
 # The short X.Y version.
-from mnetemplate import __version__
+from mnestudy import __version__
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = __version__
