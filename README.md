@@ -55,10 +55,4 @@ This is the tentative workflow to go from Raw data to ICA.
 
 ## Labeling Components Workflow
 
-Within the GUI that ``mne-icalabel`` will have, to label the components of each dataset, we'll have to do:
-
-- open up BIDS file corresponding to the ICA + the Raw/Epochs instance (at most 1 minute lengths)
-- show the plot_properties plots with 1 minute of the time-series by default
-- label components with color-coded labels
-- closing the window will now save back to the BIDs files.
-- update script to do the next file
+For full details, see `labeling_workflow.md` file.
