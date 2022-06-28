@@ -8,6 +8,8 @@ from mne_bids import (
     write_raw_bids,
 )
 
+from preprocess import preprocess_ANT_dataset
+
 mne.set_log_level("WARNING")
 
 
@@ -25,7 +27,8 @@ for k, fname in enumerate(files):
     raw.info["line_freq"] = 50.0
 
     # drop events and AUX channels
-    raw.drop_channels(["TRIGGER", "AUX7", "AUX8"])
+    # mastoids are also dropped as 50% of the time they do not make good scalp contact
+    raw.drop_channels(["TRIGGER", "AUX7", "AUX8", "M1", "M2"])
 
     # rename channels with wrong names
     mapping = {
@@ -59,26 +62,42 @@ for k, fname in enumerate(files):
     # add experimenter
     raw.info["experimenter"] = "Mathieu Scheltienne"
 
-    # create a subject id
-    subject = str(k)
-    # update BIDS path
-    bids_path.update(subject=subject)
+    # preprocess
+    raw_pp, ica = preprocess_ANT_dataset(raw)
+
+    # remove template montage
+    raw_pp.set_montage(None)
+
+    # create a subject id and update BIDS path
+    bids_path.update(subject=str(k))
 
     # write BIDS
+    bids_path.update(processing="raw")
     write_raw_bids(
         raw, bids_path, format="BrainVision", allow_preload=True, overwrite=True
     )
-
-    # update manufacturer field in the sidecar
-    bids_path_sidecar = BIDSPath(
-        subject=bids_path.subject,
-        task=bids_path.task,
-        session=bids_path.session,
-        suffix="eeg",
-        extension=".json",
-        root=bids_root,
+    bids_path.update(processing="pp")
+    write_raw_bids(
+        raw_pp, bids_path, format="BrainVision", allow_preload=True, overwrite=True
     )
-    update_sidecar_json(bids_path_sidecar, {"Manufacturer": "ANT Neuro"})
+    bids_path.update(processing="ica")
+    ica.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
+
+    # update fields in the sidecar
+    for processing in ("raw", "pp"):
+        bids_path_sidecar = BIDSPath(
+            subject=bids_path.subject,
+            task=bids_path.task,
+            session=bids_path.session,
+            processing=processing,
+            suffix="eeg",
+            extension=".json",
+            root=bids_root,
+        )
+        update_sidecar_json(
+            bids_path_sidecar,
+            {"Manufacturer": "ANT Neuro", "EEGReference": "CPz", "EEGGround": "AFz"}
+        )
 
 # make dataset description
 make_dataset_description(

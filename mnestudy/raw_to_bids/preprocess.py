@@ -7,6 +7,7 @@ from mne.preprocessing import ICA, compute_bridged_electrodes
 
 def preprocess_ANT_dataset(raw):
     """Automatic preprocessing pipeline for ANT dataset."""
+    raw = raw.copy()
     # Bandpass standard filter
     # 100 Hz edge should retain muscle activity.
     bandpass = (1., 100.)  # Hz
@@ -31,8 +32,8 @@ def preprocess_ANT_dataset(raw):
     # Look for bridged electrodes
     # requires MNE >= 1.1.0
     bridged_idx, _ = compute_bridged_electrodes(raw)
-    ch_names = [raw.ch_names[k] for k in itertools.chain(*bridged_idx)]
-    raw.info["bads"] = list(set(raw.info["bads"] + ch_names))
+    bridged_ch_names = [raw.ch_names[k] for k in itertools.chain(*bridged_idx)]
+    raw.info["bads"] = list(set(raw.info["bads"] + bridged_ch_names))
 
     # CAR reference
     # The reference channel CPz is not added as it would just introduce an
