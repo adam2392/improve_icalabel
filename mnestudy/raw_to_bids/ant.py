@@ -46,9 +46,8 @@ for k, fname in enumerate(files):
         except Exception:
             pass
 
-    # add reference channels and montage
+    # add reference channels
     raw.add_reference_channels(ref_channels="CPz")
-    raw.set_montage("standard_1020")
 
     # add device information
     raw.info["device_info"] = dict()
