@@ -45,7 +45,7 @@ info.set_montage(montage)
 
 #%% Create ICA
 #
-# Uses as similar approach to the loading of ICA instance from EEGLAB, but
+# Uses a similar approach to the loading of ICA instance from EEGLAB, but
 # applied to ``W_ffdiag``.
 # c.f. https://github.com/mne-tools/mne-python/blob/main/mne/preprocessing/ica.py#L2794-L2856
 

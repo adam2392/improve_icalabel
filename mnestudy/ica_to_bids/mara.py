@@ -7,12 +7,12 @@ from mne_bids.config import BIDS_COORD_FRAME_DESCRIPTIONS, MNE_TO_BIDS_FRAMES
 from mne_bids.utils import _write_json, _write_tsv
 from mne_icalabel.annotation import mark_component, write_components_tsv
 
-from .mara_loader import loader
+from mara_loader import loader
 
 
 def convert(directory_in, directory_out):
-    """
-    Convert the MARA dataset to BIDS format.
+    """Convert the MARA dataset to BIDS format.
+
     Parameters
     ----------
     directory_in : path-like
@@ -21,7 +21,7 @@ def convert(directory_in, directory_out):
         Path to the directory where the BIDS dataset is saved.
     """
     directory_in, directory_out = _check_paths(directory_in, directory_out)
-    bids_path = BIDSPath(root=directory_out)
+    bids_path = BIDSPath(root=directory_out, datatype="eeg")
 
     # keep a dict mapping of identifiers and 0 to N idx
     mapping = dict()  # identifier: idx
@@ -31,14 +31,27 @@ def convert(directory_in, directory_out):
         if fname.is_dir() or fname.suffix != ".mat":
             continue
 
-        identifier = fname.stem.split("oddball_fasor_")[1]
+        identifier = fname.stem.split("oddball_fasor_")[1].replace("_", "")
         ica, sources, brain_components = loader(fname)
 
         # update BIDSPath
         if identifier not in mapping:
-            mapping[identifier] = inc
+            mapping[identifier] = str(inc)
             inc += 1
         bids_path.update(subject=mapping[identifier], task=identifier)
+
+        # write files
+        bids_path.update(processing="ica", extension=None)
+        ica.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
+        bids_path.update(processing="sources", extension=None)
+        sources.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
+
+        # write good and bad components
+        bids_path.update(processing="iclabels", extension=".tsv")
+        write_components_tsv(ica, bids_path)
+        for k in range(ica.n_components_):
+            label = "brain" if k in brain_components else "noise"
+            mark_component(k, bids_path, method="MARA", label=label, author="MARA")
 
         # write montage
         _write_montage(bids_path, ica.info.get_montage())
@@ -57,6 +70,7 @@ def _check_paths(directory_in, directory_out):
 
 def _write_montage(bids_path, montage):
     """Write the montage to the bids-path.
+
     Fiducials nasion, lpa and rpa are missing.
     """
     # sanity-check and retrieve coordinate frame
