@@ -1,11 +1,11 @@
-import json 
+import json
+
+from mne.preprocessing import read_ica
+from mne_bids import BIDSPath, read_raw_bids
+from mne_icalabel.gui import label_ica_components
+from mne_icalabel.iclabel import get_iclabel_features
 from sklearn.ensemble import RandomForestClassifier
 
-from mne_bids import BIDSPath, read_raw_bids
-from mne.preprocessing import read_ica
-
-from mne_icalabel.iclabel import get_iclabel_features
-from mne_icalabel.gui import label_ica_components
 
 def load_data(bids_path, raw_path):
     

@@ -1,13 +1,8 @@
 from pathlib import Path
 
 import mne
-from mne_bids import (
-    BIDSPath,
-    make_dataset_description,
-    update_sidecar_json,
-    write_raw_bids,
-)
-
+from mne_bids import (BIDSPath, make_dataset_description, update_sidecar_json,
+                      write_raw_bids)
 from preprocess import preprocess_ANT_dataset
 
 mne.set_log_level("WARNING")
@@ -96,7 +91,7 @@ for k, fname in enumerate(files):
         )
         update_sidecar_json(
             bids_path_sidecar,
-            {"Manufacturer": "ANT Neuro", "EEGReference": "CPz", "EEGGround": "AFz"}
+            {"Manufacturer": "ANT Neuro", "EEGReference": "CPz", "EEGGround": "AFz"},
         )
 
 # make dataset description

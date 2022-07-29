@@ -8,7 +8,6 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 from pymatreader import read_mat
 
-
 #%% Read .mat file
 fname = r""
 mara = read_mat(fname)

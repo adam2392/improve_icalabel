@@ -10,7 +10,7 @@ def preprocess_ANT_dataset(raw):
     raw = raw.copy()
     # Bandpass standard filter
     # 100 Hz edge should retain muscle activity.
-    bandpass = (1., 100.)  # Hz
+    bandpass = (1.0, 100.0)  # Hz
     raw.filter(
         l_freq=bandpass[0],
         h_freq=bandpass[1],

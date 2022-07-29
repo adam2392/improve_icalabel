@@ -44,27 +44,6 @@ Note: If you need to install MNE-Python, https://mne.tools/dev/install/manual_in
 
 Walk through the following subjects: ``sub-1`` and ``sub-2``. You will read in the files using [mne-bids](). You can use the following script:
 
-```
-    root = '/Dropbox/ds004178-download/'  # change to wherever the dataset is housed for you
-    subject= 'sub-1'  # change this for each subject
-    task='neurofeedback'
-    proc='pp'
-    extension='.vhdr'
-
-    bids_path = BIDSPath(root=root, subject=subject, task=task, processing=proc,
-    extension=extension)
-
-    # this is now a MNE-Python Raw object, which you can visualize
-    raw = read_raw_bids(bids_path)
-
-    # Note: you may need to install additional softwares for visualization
-    # Unsure... on Windows...
-    # you can plot the Raw object using its `plot()` function
-    raw.plot()
-
-    # More specifically, I would play around with options of the plotting mechanism, documneted here: https://mne.tools/stable/generated/mne.io.Raw.html#mne.io.Raw.plot
-```
-
 The above linked tutorials will then walk you through how to "annotate" or "mark" bad channels, or how they will appear on your plotter. What I would like you to do is the following:
 
 - familiarize yourself with the code/concepts presented in the two tutorials and play around with it to see if you understand conceptually what is happening.
