@@ -3,15 +3,19 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import mne
+from mne.io import BaseRaw
 from mne.preprocessing import (ICA, compute_bridged_electrodes, corrmap,
                                create_ecg_epochs, create_eog_epochs)
 from mne_bids import BIDSPath, read_raw_bids, write_raw_bids
 
 
-def preprocess_raw(raw):
+def preprocess_raw(raw: BaseRaw):
     # ensuure that Raw data is loaded onto RAM
     # MNE functions generally require this
     raw.load_data()
+
+    # set montage - EEG locations from a template
+    raw.set_montage('standard_1020')
 
     # upper/lower-cutoff of frequencies
     h_freq = 100.0
