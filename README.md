@@ -12,6 +12,10 @@ Each subdirectory of `mnestudy` will house some scripts to perform processing an
 - ``raw_to_bids/``: For datasets with existing Raw data, we will need to preprocess them, convert to BIDS, and then run ICA and convert that to BIDS. For ICA portion, scripts should be housed in ``ica_to_bids/``.
 - ``ica_to_bids/``: This converts existing ICA data to BIDS format. It will optionally also run ICA analysis. Some datasets will only contain the ICA portion.
 
+You'll need to install mne-icalabel:
+
+    pip install https://api.github.com/repos/mne-tools/mne-icalabel/zipball/main
+
 # Data Layout
 
 We would ideally like the Raw data saved in one single file (split up if the format requires it). The Raw data should be saved according to [BIDS-EEG](https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/03-electroencephalography.html).

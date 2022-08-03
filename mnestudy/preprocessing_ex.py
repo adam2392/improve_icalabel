@@ -4,8 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import mne
 from mne.io import BaseRaw
-from mne.preprocessing import (ICA, compute_bridged_electrodes, corrmap,
-                               create_ecg_epochs, create_eog_epochs)
+from mne.preprocessing import (ICA, compute_bridged_electrodes)
 from mne_bids import BIDSPath, read_raw_bids, write_raw_bids
 
 
@@ -13,6 +12,9 @@ def preprocess_raw(raw: BaseRaw):
     # ensuure that Raw data is loaded onto RAM
     # MNE functions generally require this
     raw.load_data()
+    
+    # set bad channels here
+    raw.info['bads'] = []
 
     # set montage - EEG locations from a template
     raw.set_montage('standard_1020')
@@ -47,15 +49,15 @@ def preprocess_raw(raw: BaseRaw):
         bridged_idx=bridged_idx,
         ed_matrix=ed_matrix,
         title="Bridging Elecs Topographic Map Analysis",
-        show=False,
+        topomap_args=dict(show=False),
     )
+    plt.show(block=True)
 
     # now show the figure but block program execution...
     # Note: currently there is no `block` parameter in the plotting bridged
     # electrodes function, so we have to do this instead. In future, sub this out
     # and add the kwarg to the function itself.
-    plt.show(block=True)
-
+    # fig.show(block=True)
     return unbridged_filt_raw
 
 
@@ -65,19 +67,30 @@ def ica_analysis(raw):
     ica.fit(raw)
 
     # plot ICA
-    fig = ica.plot_properties(raw, show=False)
-    fig.show(block=True)
+    fig = ica.plot_properties(raw)
+    plt.show(block=True)
     return ica
 
 
-def manual_plot(raw, ica):
-    pass
+def annotate_ica_components(raw, ica, fname):
+    from mne_icalabel.gui import label_ica_components
+    from mne_icalabel.annotation import write_components_tsv
+
+    # open up the GUI
+    gui = label_ica_components(raw, ica, show=True, block=True)
+
+    # the ICA instance will be modified in-place. So the labels of the
+    # ICA components will be set in the 'labels_' property
+    print(ica.labels_)
+
+    # To save this to disc, 
+    write_components_tsv(ica, fname)
 
 
 def main():
-    root = "/Dropbox/ds004178-download/"  # change to wherever the dataset is housed for you
+    root = "~/Dropbox/ds004178-download/"  # change to wherever the dataset is housed for you
     deriv_root = Path(root) / "derivatives" / "preprocessed"
-    subject = "sub-1"  # change this for each subject
+    subject = "3"  # change this for each subject
     task = "neurofeedback"
     proc = "pp"
     extension = ".vhdr"
@@ -94,12 +107,30 @@ def main():
 
     # write now to BIDS
     pproc_bids_path = BIDSPath(
-        subject=subject, task=task, proc="pproc", extension=".edf", root=deriv_root
+        subject=subject, task=task, processing="pproc",
+        extension=".edf", root=deriv_root
     )
-    write_raw_bids(preproc_raw, pproc_bids_path, format="EDF", allow_preload=True)
+    # write_raw_bids(preproc_raw, pproc_bids_path, format="EDF", allow_preload=True, overwrite=True)
 
     # common average reference
     preproc_raw = preproc_raw.set_eeg_reference("average")
 
     # run ICA
     ica = ica_analysis(preproc_raw)
+
+    # save the ICA to the same directory
+    fname = pproc_bids_path.copy().update(extension='.fif.gz',
+        processing='ica',
+        check=False, suffix='ica')
+    print(f'Saving ICA instance to disc at: {fname}')
+    ica.save(fname)
+
+    # annotate the components
+    fname = pproc_bids_path.copy().update(extension='.tsv',
+        processing='annotations',
+        check=False, suffix='deriv-aaron_ica')
+    print(f'Saving annotation labels to disc at: {fname}')
+    annotate_ica_components(raw, ica, fname)
+
+if __name__ == '__main__':
+    main()
