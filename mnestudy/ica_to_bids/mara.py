@@ -2,12 +2,12 @@ import os
 from collections import OrderedDict
 from pathlib import Path
 
+import pandas as pd
+from mara_loader import loader
 from mne_bids import BIDSPath
 from mne_bids.config import BIDS_COORD_FRAME_DESCRIPTIONS, MNE_TO_BIDS_FRAMES
 from mne_bids.utils import _write_json, _write_tsv
 from mne_icalabel.annotation import mark_component, write_components_tsv
-
-from mara_loader import loader
 
 
 def convert(directory_in, directory_out):
@@ -47,12 +47,11 @@ def convert(directory_in, directory_out):
         sources.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
 
         # write good and bad components
-        bids_path.update(processing="iclabels", extension=".tsv")
+        bids_path.update(processing="iclabels", suffix="markers", extension=".tsv")
         write_components_tsv(ica, bids_path)
         for k in range(ica.n_components_):
-            label = "brain" if k in brain_components else "noise"
+            label = "brain" if k in brain_components else "channel noise"
             mark_component(k, bids_path, method="MARA", label=label, author="MARA")
-
         # write montage
         _write_montage(bids_path, ica.info.get_montage())
 
