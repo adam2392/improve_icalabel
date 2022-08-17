@@ -2,12 +2,11 @@ import os
 from collections import OrderedDict
 from pathlib import Path
 
+from mara_loader import loader
 from mne_bids import BIDSPath
 from mne_bids.config import BIDS_COORD_FRAME_DESCRIPTIONS, MNE_TO_BIDS_FRAMES
 from mne_bids.utils import _write_json, _write_tsv
 from mne_icalabel.annotation import mark_component, write_components_tsv
-
-from mara_loader import loader
 
 
 def convert(directory_in, directory_out):
@@ -30,28 +29,39 @@ def convert(directory_in, directory_out):
     for fname in directory_in.iterdir():
         if fname.is_dir() or fname.suffix != ".mat":
             continue
+        print(f"\n\nConverting {fname}...")
 
         identifier = fname.stem.split("oddball_fasor_")[1].replace("_", "")
         ica, sources, brain_components = loader(fname)
-
+        print("Finished loading data... \n\n")
         # update BIDSPath
         if identifier not in mapping:
             mapping[identifier] = str(inc)
             inc += 1
-        bids_path.update(subject=mapping[identifier], task=identifier)
+        bids_path.update(subject=mapping[identifier], task=identifier, extension=".fif")
 
         # write files
-        bids_path.update(processing="ica", extension=None)
+        bids_path.update(processing="ica")
         ica.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
-        bids_path.update(processing="sources", extension=None)
+        bids_path.update(processing="sources")
         sources.save(bids_path.fpath.with_suffix(".fif"), overwrite=True)
 
         # write good and bad components
-        bids_path.update(processing="iclabels", extension=".tsv")
-        write_components_tsv(ica, bids_path)
+        comp_bids_path = bids_path.copy().update(
+            processing="iclabels", suffix="ica", extension=".tsv", check=False
+        )
+        print("\n\n Trying to write componnets tsv to: ", comp_bids_path)
+        write_components_tsv(ica, comp_bids_path)
         for k in range(ica.n_components_):
             label = "brain" if k in brain_components else "noise"
-            mark_component(k, bids_path, method="MARA", label=label, author="MARA")
+            mark_component(
+                k,
+                comp_bids_path,
+                method="MARA",
+                label=label,
+                author="MARA",
+                strict_label=False,
+            )
 
         # write montage
         _write_montage(bids_path, ica.info.get_montage())
@@ -133,3 +143,12 @@ def _write_montage(bids_path, montage):
         "AnatomicalLandmarkCoordinateUnits": "m",  # default
     }
     _write_json(coordsystem_path, fid_json, overwrite=True)
+
+
+if __name__ == "__main__":
+    from mara import convert
+
+    directory_in = Path("/Users/adam2392/Downloads/fasor/")
+    directory_out = Path("/Users/adam2392/Downloads/fasor_bids/")
+
+    convert(directory_in, directory_out)
