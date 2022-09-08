@@ -192,4 +192,6 @@ def validate(net, dataloader, loss):
             count += len(labels)
     return test_cost.item()/count, acc.item()/count
 
-validate(model,test_data_loader, loss=loss)
+cost_test , accuracy_test = validate(model,test_data_loader, loss=loss)
+print('Test Loss: {}'.format(cost_test))
+print('Test_accuracy: {}'.format(accuracy_test))
