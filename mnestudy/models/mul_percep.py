@@ -11,6 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from torch.nn.functional import binary_cross_entropy
 from torch.nn import BCELoss
 import time
+from torch.nn.functional import relu
 
 ######################################
 # DATA LOADING
@@ -100,7 +101,9 @@ class multi_layer_net(torch.nn.Module):
     def forward(self, x):
         out = self.linear(x)
         out = self.linear_2(out)
+        out = relu(out)
         out = self.linear_3(out)
+        out = relu(out)
         out = self.linear_4(out)
         logits = torch.sigmoid(out)
         return logits
@@ -190,7 +193,7 @@ def validate(net, dataloader, loss):
             pred = torch.where((out >0.7), 1, 0)
             acc += (pred==labels).sum()
             count += len(labels)
-    return test_cost.item()/count, acc.item()/count
+    return test_cost.item()/count, (acc.item()/count)*100
 
 cost_test , accuracy_test = validate(model,test_data_loader, loss=loss)
 print('Test Loss: {}'.format(cost_test))
